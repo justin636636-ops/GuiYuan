@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#101413" />
+    <title>归元</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell" aria-label="归元">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">内景调息</p>
+          <h1>归元</h1>
+        </div>
+        <div class="top-actions" aria-label="操作">
+          <button class="icon-button" id="undoButton" type="button" aria-label="撤销一步">↶</button>
+          <button class="icon-button" id="restartButton" type="button" aria-label="重新开始">↻</button>
+        </div>
+      </header>
+
+      <section class="score-strip" aria-label="资源">
+        <div class="resource">
+          <span>心息</span>
+          <strong id="heartValue">3</strong>
+        </div>
+        <div class="resource">
+          <span>清明</span>
+          <strong id="clarityValue">0</strong>
+        </div>
+        <div class="resource">
+          <span>息周</span>
+          <strong id="turnValue">0</strong>
+        </div>
+        <div class="resource">
+          <span>余念</span>
+          <strong id="remnantValue">无</strong>
+        </div>
+        <div class="resource">
+          <span>无念</span>
+          <strong id="noMindValue">无</strong>
+        </div>
+      </section>
+
+      <section class="board" aria-label="三脉">
+        <button class="lane" id="ascendLane" type="button" data-lane="ascend">
+          <span class="lane-title">升脉</span>
+          <span class="lane-rule">递增</span>
+          <span class="lane-slots" id="ascendSlots"></span>
+          <span class="lane-note" id="ascendNote"></span>
+        </button>
+
+        <button class="lane center-lane" id="centerLane" type="button" data-lane="center">
+          <span class="lane-title">中宫</span>
+          <span class="lane-rule">三条 / 顺子</span>
+          <span class="lane-slots" id="centerSlots"></span>
+          <span class="lane-note" id="centerNote"></span>
+        </button>
+
+        <button class="lane" id="descendLane" type="button" data-lane="descend">
+          <span class="lane-title">降脉</span>
+          <span class="lane-rule">递减</span>
+          <span class="lane-slots" id="descendSlots"></span>
+          <span class="lane-note" id="descendNote"></span>
+        </button>
+      </section>
+
+      <section class="draw-panel" aria-label="本回合息珠">
+        <div class="panel-heading">
+          <span>本回合</span>
+          <span id="phaseText">开局</span>
+          <button class="abandon-button" id="abandonButton" type="button">舍息</button>
+        </div>
+        <div class="draw-pair" id="drawPair"></div>
+      </section>
+
+      <section class="message-panel" aria-live="polite" aria-label="提示">
+        <p id="primaryMessage">择一息入中宫。</p>
+        <ol id="historyList"></ol>
+      </section>
+    </main>
+
+    <section class="overlay is-visible" id="setupOverlay" aria-label="开局">
+      <div class="modal setup-modal">
+        <p class="eyebrow">开局抽二</p>
+        <h2>择一息，立中宫</h2>
+        <div class="setup-pair" id="setupPair"></div>
+      </div>
+    </section>
+
+    <section class="overlay" id="callbackOverlay" aria-label="回调一脉">
+      <div class="modal">
+        <p class="eyebrow">中宫三条</p>
+        <h2 id="callbackTitle">回调一脉</h2>
+        <p class="modal-copy" id="callbackCopy"></p>
+        <div class="modal-actions">
+          <button class="action-button" id="callbackAscend" type="button">回调升脉</button>
+          <button class="action-button" id="callbackDescend" type="button">回调降脉</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="overlay" id="gameOverOverlay" aria-label="游戏结束">
+      <div class="modal">
+        <p class="eyebrow">心息已尽</p>
+        <h2>本局归元</h2>
+        <div class="final-score">
+          <span>清明</span>
+          <strong id="finalScore">0</strong>
+        </div>
+        <p class="modal-copy" id="bestScoreText"></p>
+        <button class="action-button primary" id="newGameButton" type="button">重新开始</button>
+      </div>
+    </section>
+
+    <script src="game.js"></script>
+  </body>
+</html>
