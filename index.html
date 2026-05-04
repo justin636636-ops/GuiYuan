@@ -15,15 +15,35 @@
           <h1>归元</h1>
         </div>
         <div class="top-actions" aria-label="操作">
-          <button class="icon-button" id="undoButton" type="button" aria-label="撤销一步">↶</button>
+          <button class="icon-button scoreboard-button" id="scoreboardButton" type="button" aria-label="查看计分榜">
+            <span class="scoreboard-icon" aria-hidden="true"><span></span></span>
+          </button>
+          <button class="icon-button rules-button" id="rulesButton" type="button" aria-label="查看规则">
+            <span class="book-icon" aria-hidden="true"></span>
+          </button>
+          <button class="icon-button log-button" id="logButton" type="button" aria-label="查看日志">Log</button>
+          <button class="icon-button" id="undoButton" type="button" aria-label="撤销一步">
+            <svg class="undo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M9 8H5V4" />
+              <path d="M5.6 8.6A8 8 0 1 1 4 13.4" />
+            </svg>
+          </button>
           <button class="icon-button" id="restartButton" type="button" aria-label="重新开始">↻</button>
         </div>
       </header>
 
+      <section class="guiyuan-panel" aria-label="归元图">
+        <div class="panel-heading">
+          <span>归元图</span>
+          <span id="pendingSealText">待产印</span>
+        </div>
+        <div class="guiyuan-grid" id="guiyuanGrid"></div>
+      </section>
+
       <section class="score-strip" aria-label="资源">
         <div class="resource">
           <span>心息</span>
-          <strong id="heartValue">3</strong>
+          <strong id="heartValue">3/4</strong>
         </div>
         <div class="resource">
           <span>清明</span>
@@ -70,7 +90,7 @@
         <div class="panel-heading">
           <span>本回合</span>
           <span id="phaseText">开局</span>
-          <button class="abandon-button" id="abandonButton" type="button">舍息</button>
+          <button class="abandon-button" id="abandonButton" type="button">换气</button>
         </div>
         <div class="draw-pair" id="drawPair"></div>
       </section>
@@ -83,17 +103,28 @@
 
     <section class="overlay is-visible" id="setupOverlay" aria-label="开局">
       <div class="modal setup-modal">
-        <p class="eyebrow">开局抽二</p>
-        <h2>择一息，立中宫</h2>
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">开局抽二</p>
+            <h2>择一息，立中宫</h2>
+          </div>
+          <button class="icon-button minimize-button" data-minimize="setup" type="button" aria-label="最小化弹窗">−</button>
+        </div>
         <div class="setup-pair" id="setupPair"></div>
       </div>
     </section>
 
     <section class="overlay" id="callbackOverlay" aria-label="回调一脉">
       <div class="modal">
-        <p class="eyebrow">中宫三条</p>
-        <h2 id="callbackTitle">回调一脉</h2>
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">中宫三条</p>
+            <h2 id="callbackTitle">回调一脉</h2>
+          </div>
+          <button class="icon-button minimize-button" data-minimize="callback" type="button" aria-label="最小化弹窗">−</button>
+        </div>
         <p class="modal-copy" id="callbackCopy"></p>
+        <div class="callback-state" id="callbackState" aria-label="当前脉值"></div>
         <div class="modal-actions">
           <button class="action-button" id="callbackAscend" type="button">回调升脉</button>
           <button class="action-button" id="callbackDescend" type="button">回调降脉</button>
@@ -101,18 +132,323 @@
       </div>
     </section>
 
+    <section class="overlay" id="rulesOverlay" aria-label="游戏规则" aria-modal="true">
+      <div class="modal rules-modal">
+        <div class="log-header">
+          <div>
+            <p class="eyebrow">Rule Book</p>
+            <h2>归元规则</h2>
+          </div>
+          <div class="modal-icon-actions">
+            <button class="icon-button minimize-button" data-minimize="rules" type="button" aria-label="最小化弹窗">−</button>
+            <button class="icon-button" id="closeRulesButton" type="button" aria-label="关闭规则">×</button>
+          </div>
+        </div>
+        <div class="rules-content" aria-label="归元当前完整版规则">
+          <section>
+            <h3>一、游戏定位</h3>
+            <p>《归元》是一款以内景调息为题材的极简策略游戏。</p>
+            <p>玩家每回合抽取两枚带颜色的数字息珠，选择其中一枚放入三脉之一，调度升降、归中、余念与无念，最终在九宫格中修成一张<strong>归元图</strong>。</p>
+            <p>游戏目标是在心息耗尽前，尽可能获得更高的总分，并修成更完整、更高分的归元图。</p>
+            <p>最终总分为：<strong>最终总分 = 清明 + 归元图得分</strong>。</p>
+          </section>
+
+          <section>
+            <h3>二、基础元素</h3>
+            <p><strong>数字</strong>：游戏只使用 <code>1、2、3、4、5</code>。</p>
+            <p><strong>颜色</strong>：每个数字都有一种颜色，暂定三色：赤、青、黄。例如赤1、青3、黄5。</p>
+            <p>数字决定能否放入三脉。颜色不影响放置合法性，只影响结算倍率、调和、归元图印的颜色。</p>
+          </section>
+
+          <section>
+            <h3>三、核心资源</h3>
+            <ul>
+              <li><strong>心息</strong>：生命值。初始心息为 <code>3</code>，最大心息为 <code>4</code>；心息降为 0 时游戏结束，进入终局计分。中宫顺子可以回复心息，但不能超过 4。</li>
+              <li><strong>清明</strong>：过程分数，主要来自升脉和降脉结算。升脉、降脉按 <code>基础分 × 颜色倍率</code> 获得清明。</li>
+              <li><strong>余念</strong>：一个被暂时禁止选择的点数。通常每回合未选择息珠的点数会成为新的余念。余念只记录点数，不记录颜色；若余念是 4，则赤4、青4、黄4 都不能选。</li>
+              <li><strong>无念</strong>：一次性状态。下一次本应产生余念时，改为不产生余念，然后消耗无念。无念不可叠加，已有无念时再次获得仍只保留 1 次。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>四、三脉结构</h3>
+            <table>
+              <thead>
+                <tr><th>名称</th><th>格数</th><th>规则</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>升脉</td><td>3</td><td>数字必须严格递增</td></tr>
+                <tr><td>降脉</td><td>3</td><td>数字必须严格递减</td></tr>
+                <tr><td>中宫</td><td>3</td><td>必须最终形成三条或顺子</td></tr>
+              </tbody>
+            </table>
+            <p>升脉和降脉第一格是带颜色的初始锚点。中宫开局会有一枚种子息珠。</p>
+          </section>
+
+          <section>
+            <h3>五、开局设置</h3>
+            <p>游戏开始时，随机抽出两枚彩色息珠。玩家选择其中一枚放入中宫第一格，作为<strong>中宫种子</strong>。另一枚未选择的息珠，其点数成为初始余念。</p>
+            <p>当前版本开局从第二阶段开始：升脉初始值为 <code>2</code>，降脉初始值为 <code>4</code>。被选择的息珠颜色成为升脉初始锚色，未选择的息珠颜色成为降脉初始锚色。</p>
+            <p>例：开局抽到赤2 / 青4。若选择赤2进入中宫，则开局状态为：升脉 <code>赤2，_，_</code>，降脉 <code>青4，_，_</code>，中宫 <code>赤2，_，_</code>，初始余念 4，心息 <code>3/4</code>，清明 0，无念无，归元图为空。</p>
+            <p>若选择青4进入中宫，则开局状态为：升脉 <code>青2，_，_</code>，降脉 <code>赤4，_，_</code>，中宫 <code>青4，_，_</code>，初始余念 2，心息 <code>3/4</code>，清明 0，无念无，归元图为空。</p>
+          </section>
+
+          <section>
+            <h3>六、每回合流程</h3>
+            <ol>
+              <li><strong>抽 2 枚息珠</strong>：随机抽出两枚彩色数字息珠，点数和颜色都可以重复。</li>
+              <li><strong>检查余念</strong>：点数等于当前余念的息珠不能被选择；如果当前没有余念，则两个息珠都不因余念被禁。</li>
+              <li><strong>可选择换气</strong>：在选择息珠前，玩家可以失去 1 点心息，弃掉当前两枚息珠并重新抽 2 枚。换气不设次数限制；当前余念不变，无念不消耗，被弃掉的息珠不产生新余念。若心息因此归零，游戏立即结束。</li>
+              <li><strong>选择 1 枚息珠</strong>：玩家从可选息珠中选择 1 枚，尝试放入升脉、降脉或中宫。</li>
+              <li><strong>断息提示</strong>：如果两枚息珠都因余念不可选，或所有可选息珠都无法合法放入任何一脉，则失去 1 点心息，这两枚息珠作废，当前余念不变，无念不消耗。界面会停在“断息”提示，玩家点击“继续”后重新抽 2 枚；若心息因此归零，则直接进入终局。</li>
+              <li><strong>放入一脉</strong>：玩家将选中的息珠放入一个合法位置。若该脉因此填满，立即结算该脉，并产生一枚印放入归元图。</li>
+              <li><strong>处理余念 / 无念</strong>：若本回合触发调和，则清空当前余念，本回合未选择息珠不产生新余念，并获得 1 次无念。若没有调和但拥有无念，则本回合不产生新余念并消耗无念。若没有调和也没有无念，则未选择息珠的点数成为新的余念。</li>
+            </ol>
+            <p>注意：如果另一枚息珠因为当前余念而不能选，但本回合成功选择并放入了另一枚息珠，则那枚未入脉的息珠仍视为“未选择息珠”。在没有调和、没有无念时，它的点数仍会成为新的余念，多数情况下会使余念保持不变。</p>
+          </section>
+
+          <section>
+            <h3>七、升脉规则</h3>
+            <p>升脉代表气息上行。升脉开局为 <code>某色2，_，_</code>，例如 <code>赤2，_，_</code>。第一格是初始锚点，既有点数，也有颜色。</p>
+            <p>升脉只能从上到下填写。新填入的数字必须严格大于该脉上一个数字，并且第二格落子后仍需保证第三格有可能完成。例如 <code>赤2，青3，_</code> 后续可以放 4 或 5；<code>赤2，青3，黄5</code> 合法；<code>赤2，青3，黄2</code> 不合法。</p>
+            <p>升脉结算时获得清明。升脉基础分由当前初始值决定：</p>
+            <table>
+              <thead>
+                <tr><th>升脉当前初始值</th><th>基础分</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td>1</td></tr>
+                <tr><td>2</td><td>2</td></tr>
+                <tr><td>3</td><td>3</td></tr>
+              </tbody>
+            </table>
+            <p>公式为：<strong>升脉得分 = 升脉当前初始值 × 颜色倍率</strong>。虽然开局从 2 开始，但中宫三条回调可以让升脉回到更安全的 1。</p>
+            <p>当升脉三格填满并结算后：获得清明，产生 1 枚升印，升脉清空，初始值 +1，新锚色继承本次完成升脉的最后落子颜色。若初始值达到 4，升脉进入脉闭状态，不可再放入任何数字，只能通过中宫三条回调解除。</p>
+          </section>
+
+          <section>
+            <h3>八、降脉规则</h3>
+            <p>降脉代表气息下行。降脉开局为 <code>某色4，_，_</code>，例如 <code>青4，_，_</code>。第一格是初始锚点，既有点数，也有颜色。</p>
+            <p>降脉只能从上到下填写。新填入的数字必须严格小于该脉上一个数字，并且第二格落子后仍需保证第三格有可能完成。例如 <code>青4，赤3，_</code> 后续可以放 1 或 2；<code>青4，赤3，黄1</code> 合法；<code>青4，赤3，黄4</code> 不合法。</p>
+            <p>降脉结算时获得清明。降脉基础分按难度阶数计算，而不是直接使用表面初始值：</p>
+            <table>
+              <thead>
+                <tr><th>降脉当前初始值</th><th>基础分</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>5</td><td>1</td></tr>
+                <tr><td>4</td><td>2</td></tr>
+                <tr><td>3</td><td>3</td></tr>
+              </tbody>
+            </table>
+            <p>公式为：<strong>降脉基础分 = 6 - 降脉当前初始值</strong>，因此 <strong>降脉得分 = 降脉基础分 × 颜色倍率</strong>。虽然开局从 4 开始，但中宫三条回调可以让降脉回到更安全的 5。</p>
+            <p>当降脉三格填满并结算后：获得清明，产生 1 枚降印，降脉清空，初始值 -1，新锚色继承本次完成降脉的最后落子颜色。若初始值达到 2，降脉进入脉闭状态，不可再放入任何数字，只能通过中宫三条回调解除。</p>
+          </section>
+
+          <section>
+            <h3>九、中宫规则</h3>
+            <p>中宫代表气息归元。中宫不要求递增或递减，但最终必须形成三条或顺子。</p>
+            <p><strong>三条</strong>是三个相同数字，例如 2、2、2 或 4、4、4。</p>
+            <p><strong>顺子</strong>是三个连续数字，不要求顺序。合法顺子只有 <code>{1,2,3}</code>、<code>{2,3,4}</code>、<code>{3,4,5}</code>。</p>
+            <p>中宫只能放入“仍有可能最终形成三条或顺子”的数字。中宫已有 1 个数字时，第二个数字必须仍可补成三条或顺子；已有 2 个数字时，第三个数字必须直接完成三条或顺子。</p>
+            <p>例：中宫已有 2 时，放 2 合法，因为可以形成三条；放 1、3、4 合法，因为可以形成顺子；放 5 不合法，因为 2、5 无法补成三条或顺子。</p>
+          </section>
+
+          <section>
+            <h3>十、颜色倍率规则</h3>
+            <p>每当任意一脉结算时，都要检查该脉三个息珠的颜色结构。颜色结构共有三类：</p>
+            <table>
+              <thead>
+                <tr><th>颜色结构</th><th>说明</th><th>倍率</th><th>额外效果</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>杂色</td><td>两同一异</td><td>×1</td><td>无</td></tr>
+                <tr><td>三不同</td><td>三色齐</td><td>×2</td><td>触发调和</td></tr>
+                <tr><td>三色同</td><td>三枚同色</td><td>×3</td><td>无额外状态，只提供高倍率</td></tr>
+              </tbody>
+            </table>
+            <p>三不同指赤、青、黄各一枚，倍率 ×2，并触发调和：清空当前余念，本回合未选息珠不产生新余念，获得 1 次无念。</p>
+            <p>三色同指三个颜色完全相同，倍率 ×3。三色同不再使用旧版固定奖励，而是统一通过倍率强化。</p>
+          </section>
+
+          <section>
+            <h3>十一、中宫结算</h3>
+            <p>当中宫三格填满后，立即结算，然后中宫清空。中宫结算也受颜色倍率影响。</p>
+            <p><strong>中宫三条：回调一脉</strong>。基础回调值为 1，最终回调档数为 <code>1 × 颜色倍率</code>：杂色三条回调 1 档，三不同三条回调 2 档并触发调和，三色同三条回调 3 档。中宫三条结算后产生 1 枚定印。</p>
+            <p>回调升脉时，升脉初始值向安全方向减少，最低回到 1；回调降脉时，降脉初始值向安全方向增加，最高回到 5。若回调后脱离脉闭值，则解除脉闭。被回调脉的新锚色改为完成中宫三条的最后落子颜色。</p>
+            <p>升脉或降脉即使已经填入后续息珠，也可以被回调。回调只改变第一格的初始点数和颜色，后续已经填入的息珠不变。由于回调永远向安全方向移动，所以不会破坏既有合法性。如果回调档数超过可回调空间，则只回调到安全边界，多余档数忽略。</p>
+            <p><strong>中宫顺子：回复心息</strong>。基础回复值为 1，最终回复心息为 <code>1 × 颜色倍率</code>：杂色顺子回复 1，三不同顺子回复 2 并触发调和，三色同顺子回复 3。回复不能超过最大心息 4。中宫顺子结算后产生 1 枚流印。</p>
+          </section>
+
+          <section>
+            <h3>十二、调和规则</h3>
+            <p>当任意一脉以三不同颜色结算时，触发调和。</p>
+            <ol>
+              <li>该脉基础效果 ×2；</li>
+              <li>清空当前余念；</li>
+              <li>本回合未选息珠不产生新余念；</li>
+              <li>获得 1 次无念。</li>
+            </ol>
+            <p>调和可以来自升脉三不同、降脉三不同、中宫三不同三条或中宫三不同顺子。无念不可叠加。</p>
+          </section>
+
+          <section>
+            <h3>十三、归元图规则</h3>
+            <p>归元图是游戏的长期建设盘面。它不是第四列，不参与每回合数字放置合法性判断，只接收三脉结算后产生的印。</p>
+            <p>归元图是一个 3×3 九宫格，坐标可理解为：</p>
+            <pre><code>(0,0) (1,0) (2,0)
+(0,1) (1,1) (2,1)
+(0,2) (1,2) (2,2)</code></pre>
+            <p>其中左下角为 <code>(0,2)</code>。</p>
+            <table>
+              <thead>
+                <tr><th>结算来源</th><th>产生的印</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>升脉结算</td><td>升印</td></tr>
+                <tr><td>降脉结算</td><td>降印</td></tr>
+                <tr><td>中宫三条</td><td>定印</td></tr>
+                <tr><td>中宫顺子</td><td>流印</td></tr>
+              </tbody>
+            </table>
+            <p>每枚印有两个属性：印型（升、降、定、流）和颜色（赤、青、黄）。印的颜色继承本次结算的最后落子颜色。一次结算永远只产生 1 枚印，颜色倍率不额外增加印数量。</p>
+          </section>
+
+          <section>
+            <h3>十四、归元图放置规则</h3>
+            <p>第一枚印固定放在左下角 <code>(0,2)</code>，不需要玩家选择位置。</p>
+            <p>从第二枚印开始，每次产生印后，玩家必须选择一个合法空格放置。合法空格必须为空，并且与至少一枚已有印正交相邻。正交相邻包括上、下、左、右，斜向相邻不算。</p>
+            <p>第一枚印固定在左下后，第二枚印只能放在左中或中下：</p>
+            <pre><code>□  □  □
+可 □  □
+印 可 □</code></pre>
+            <p>如果第二枚放在中下，第三枚可放左中、中中、右下：</p>
+            <pre><code>□  □  □
+可 可 □
+印 印 可</code></pre>
+            <p>当归元图 9 格全部填满时，游戏立即结束，进入终局计分。如果心息先降为 0，也立即结束，归元图未填满也按已有印计分。</p>
+          </section>
+
+          <section>
+            <h3>十五、终局计分</h3>
+            <p>游戏结束时：<strong>最终总分 = 清明 + 归元图得分</strong>。</p>
+            <p>清明来自游戏过程中升脉、降脉结算。归元图只计算 3 行 + 3 列，共 6 条线；不计算斜线。一条线必须有 3 枚印才计分，未填满的行或列不计分。</p>
+            <p>每条有效线分别计算印型分和颜色分。线分为：<strong>印型分 + 颜色分</strong>。</p>
+          </section>
+
+          <section>
+            <h3>十六、归元图印型分</h3>
+            <ul>
+              <li><strong>三同印：6 分</strong>。一条线上的 3 枚印完全同型，例如升 / 升 / 升、流 / 流 / 流。</li>
+              <li><strong>三异印：3 分</strong>。一条线上的 3 枚印各不相同，例如升 / 降 / 定、升 / 定 / 流。共有 4 种印，所以三异印不要求包含全部 4 种，只要求这一线上的 3 枚互不相同。</li>
+              <li><strong>二同一异：1 分</strong>。一条线上的 3 枚印为二同一异，例如升 / 升 / 降、定 / 流 / 定。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>十七、归元图颜色分</h3>
+            <ul>
+              <li><strong>三同色：3 分</strong>。一条线上的 3 枚印颜色完全相同，例如赤 / 赤 / 赤。</li>
+              <li><strong>三色齐：2 分</strong>。一条线上的 3 枚印正好包含赤、青、黄三种颜色。</li>
+              <li><strong>二同一异：0 分</strong>。一条线上的颜色为二同一异，例如赤 / 赤 / 青。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>十八、归元图计分示例</h3>
+            <p>假设归元图为：</p>
+            <pre><code>赤升   青降   黄定
+赤升   赤升   赤升
+黄流   青定   黄流</code></pre>
+            <p><strong>第一行</strong>：赤升 / 青降 / 黄定。印型为升、降、定，三异印得 3 分；颜色为赤、青、黄，三色齐得 2 分；第一行总分为 5 分。</p>
+            <p><strong>第二行</strong>：赤升 / 赤升 / 赤升。印型三同得 6 分，颜色三同得 3 分；第二行总分为 9 分。</p>
+            <p><strong>第三行</strong>：黄流 / 青定 / 黄流。印型二同一异得 1 分，颜色二同一异得 0 分；第三行总分为 1 分。</p>
+          </section>
+
+          <section>
+            <h3>十九、游戏结束</h3>
+            <p>游戏有两种结束方式：</p>
+            <ul>
+              <li><strong>心息耗尽</strong>：当心息降为 0，游戏立即结束，进入终局计分。归元图未填满也正常计分，只有完整的行 / 列计分。</li>
+              <li><strong>归元图填满</strong>：当归元图 9 格全部填满，游戏立即结束，进入终局计分。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>二十、完整体验总结</h3>
+            <p>《归元》的核心循环是：每回合抽 2 枚彩色息珠；避开余念，必要时换气；选择 1 枚放入升脉、降脉或中宫；通过升降获得清明；通过中宫三条回调脉象；通过中宫顺子回复心息；通过三不同触发调和，清空余念并获得无念；每次结算产出一枚印，放入归元图；最终根据清明与归元图共同计分。</p>
+            <p><strong>一句话概括</strong>：三脉炼息，余念成障；凝聚增势，调和无念；结印成图，万象归元。</p>
+          </section>
+        </div>
+        <div class="modal-actions rules-actions">
+          <button class="action-button primary" id="closeRulesActionButton" type="button">返回</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="overlay" id="logOverlay" aria-label="详细日志" aria-modal="true">
+      <div class="modal log-modal">
+        <div class="log-header">
+          <div>
+            <p class="eyebrow">Debug Log</p>
+            <h2>息行记录</h2>
+          </div>
+          <div class="modal-icon-actions">
+            <button class="icon-button minimize-button" data-minimize="log" type="button" aria-label="最小化弹窗">−</button>
+            <button class="icon-button" id="closeLogButton" type="button" aria-label="关闭日志">×</button>
+          </div>
+        </div>
+        <div class="log-list" id="logList" role="log" aria-label="游戏详细日志"></div>
+        <div class="modal-actions log-actions">
+          <button class="action-button" id="clearLogButton" type="button">清空日志</button>
+          <button class="action-button primary" id="closeLogActionButton" type="button">返回</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="overlay" id="scoreboardOverlay" aria-label="计分榜" aria-modal="true">
+      <div class="modal scoreboard-modal">
+        <div class="log-header">
+          <div>
+            <p class="eyebrow">Scoreboard</p>
+            <h2>计分榜</h2>
+          </div>
+          <div class="modal-icon-actions">
+            <button class="icon-button minimize-button" data-minimize="scoreboard" type="button" aria-label="最小化弹窗">−</button>
+            <button class="icon-button" id="closeScoreboardButton" type="button" aria-label="关闭计分榜">×</button>
+          </div>
+        </div>
+        <div class="scoreboard-content" id="scoreboardContent" aria-label="计分榜统计与记录"></div>
+        <div class="modal-actions scoreboard-actions">
+          <button class="action-button primary" id="closeScoreboardActionButton" type="button">返回</button>
+        </div>
+      </div>
+    </section>
+
     <section class="overlay" id="gameOverOverlay" aria-label="游戏结束">
       <div class="modal">
-        <p class="eyebrow">心息已尽</p>
-        <h2>本局归元</h2>
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">心息已尽</p>
+            <h2>本局归元</h2>
+          </div>
+          <button class="icon-button minimize-button" data-minimize="gameover" type="button" aria-label="最小化弹窗">−</button>
+        </div>
         <div class="final-score">
-          <span>清明</span>
+          <span>总分</span>
           <strong id="finalScore">0</strong>
         </div>
+        <p class="modal-copy" id="finalBreakdown"></p>
+        <div class="final-lines" id="finalLineScores" aria-label="归元图线分"></div>
         <p class="modal-copy" id="bestScoreText"></p>
         <button class="action-button primary" id="newGameButton" type="button">重新开始</button>
       </div>
     </section>
+
+    <div class="minimized-dock" id="minimizedDock" hidden>
+      <span id="minimizedDockLabel">弹窗已最小化</span>
+      <button class="action-button" id="restoreOverlayButton" type="button">恢复</button>
+    </div>
 
     <script src="game.js"></script>
   </body>
