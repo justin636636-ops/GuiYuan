@@ -1,0 +1,30 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.guiyuan.app"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.guiyuan.app"
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+tasks.register("syncWebAssets", Copy) {
+    def webRoot = rootProject.projectDir.parentFile
+    from(webRoot) {
+        include "index.html"
+        include "styles.css"
+        include "game.js"
+    }
+    into(layout.projectDirectory.dir("src/main/assets"))
+}
+
+tasks.named("preBuild") {
+    dependsOn("syncWebAssets")
+}
